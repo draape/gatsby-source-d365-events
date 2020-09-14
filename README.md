@@ -32,7 +32,7 @@ module.exports = {
 
 ## Using .env variables
 
-You should definitly not include you token information in your source code. To configure this and enable easy deployment to multiple environments using different instances of D365, you can use environment variables:
+You should definitely not include you token information in your source code. To configure this and enable easy deployment to multiple environments using different instances of D365, you can use environment variables:
 
 ```js
 // In your .env file
