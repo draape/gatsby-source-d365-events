@@ -1,16 +1,17 @@
 {
-  "name": "gatsby-starter-plugin",
-  "version": "1.0.0",
-  "description": "A minimal boilerplate for the essential files Gatsby looks for in a plugin",
+  "name": "gatsby-source-d365-events",
+  "version": "0.1.0",
+  "description": "Gatsby source plugin for Microsoft Dynamics 365 events.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo \"No build script setup\""
-  },
+  "scripts": {},
   "keywords": [
     "gatsby",
-    "gatsby-plugin"
+    "gatsby-plugin",
+    "gatsby-source-plugin"
   ],
   "author": "Kyle Gill <kyle.robert.gill@gmail.com>",
-  "license": "0BSD"
+  "license": "0BSD",
+  "dependencies": {
+    "axios": "^0.20.0"
+  }
 }
