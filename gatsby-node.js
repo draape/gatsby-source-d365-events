@@ -6,7 +6,17 @@ exports.sourceNodes = async (
   { actions, createContentDigest, createNodeId },
   options
 ) => {
-  // TODO Guards for options.endpoint, options.token, options.origin
+  if (
+    options.endpoint === undefined ||
+    options.token === undefined ||
+    options.origin === undefined
+  ) {
+    console.error(
+      "Endpoint, token and origin must be passed as options in gatsby-config.js."
+    );
+    return;
+  }
+
   const { createNode } = actions;
 
   const request = await axios.get(
