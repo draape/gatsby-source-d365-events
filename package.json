@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-d365-events",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Gatsby source plugin for Microsoft Dynamics 365 events.",
   "main": "index.js",
   "scripts": {},
@@ -9,7 +9,7 @@
     "gatsby-plugin",
     "gatsby-source-plugin"
   ],
-  "author": "Kyle Gill <kyle.robert.gill@gmail.com>",
+  "author": "Erik Heumrønningen <erik@draape.net>",
   "license": "0BSD",
   "dependencies": {
     "axios": "^0.20.0"
