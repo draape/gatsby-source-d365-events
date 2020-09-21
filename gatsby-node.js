@@ -9,6 +9,7 @@ const tokenParam = "?emApplicationtoken=";
 const eventsUri = `${versionSpec}events/published${tokenParam}`;
 const sponsorshipsUri = `${versionSpec}events/{id}/sponsorships${tokenParam}`;
 const speakersUri = `${versionSpec}events/{id}/speakers${tokenParam}`;
+const sponsorshipLogoUri = `${versionSpec}sponsorships/{id}/logo`;
 let isInitialized = false;
 
 exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
@@ -27,7 +28,7 @@ exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
   const events = await getEvents(httpOptions);
   const eventIds = events.map((event) => event.readableEventId);
   const speakers = await getEventResources(eventIds, speakersUri, httpOptions);
-  const sponsorships = await getEventResources(
+  const sponsorships = await getSponsorships(
     eventIds,
     sponsorshipsUri,
     httpOptions
@@ -106,6 +107,17 @@ const getEventResources = async (eventIds, uri, httpOptions) => {
     .catch((errors) => console.error(errors));
 };
 
+const getSponsorships = async (eventIds, uri, httpOptions) => {
+  const sponsorships = await getEventResources(eventIds, uri, httpOptions);
+  sponsorships.forEach((group) => {
+    group.forEach(
+      (sponsorship) =>
+        (sponsorship.logo = sponsorshipLogoUri.replace("{id}", sponsorship.id))
+    );
+  });
+  return sponsorships;
+};
+
 const getRelatedEntities = (event, entities) =>
   entities.get(event.readableEventId).map((entity) => entity.id);
 
@@ -139,7 +151,7 @@ exports.onCreateNode = async (
     createNodeId,
   };
 
-  if (node.internal.type === speakersNodeName)
+  if (node.internal.type === speakersNodeName && !!node.imageUrl)
     await createImageNode(
       `${options.endpoint}${versionSpec}${node.imageUrl}`,
       createOptions
@@ -163,10 +175,10 @@ const createImageNode = async (url, options) => {
     });
 
     if (fileNode) {
-      node.image___NODE = fileNode.id;
+      node.gatsbyImage___NODE = fileNode.id;
     }
   } catch (e) {
-    console.error("gatsby-source-d365-events ERROR:", e);
+    console.info("gatsby-source-d365-events Ignoring image:", e);
   }
 };
 
