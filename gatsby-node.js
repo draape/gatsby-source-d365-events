@@ -16,10 +16,7 @@ const headers = {
   method: "GET",
 };
 
-exports.sourceNodes = async (
-  { actions, createContentDigest, createNodeId },
-  options
-) => {
+exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
   if (isOptionsInitialized(options)) {
     console.error(
       "Endpoint, token and origin must be passed as options in gatsby-config.js."
@@ -32,67 +29,64 @@ exports.sourceNodes = async (
   // TODO strip trailing slash from options.endpoint
 
   const { createNode } = actions;
+  const createNodeOptions = {
+    createNode,
+    createContentDigest,
+  };
 
-  // TODO connect sponsors to events
   // TODO image handling for event
   // TODO image handling for sponsor
 
   const events = await getEvents(options);
   const eventIds = events.map((event) => event.readableEventId);
   const speakers = await getMultipleRequests(eventIds, speakersUri, options);
+  const sponsorships = await getMultipleRequests(
+    eventIds,
+    sponsorshipsUri,
+    options
+  );
 
   const hydratedEvents = events.map((event) => ({
     ...event,
-    speakers: speakers.get(event.readableEventId).map((speaker) => speaker.id),
+    speakers: getRelatedEntities(event, speakers),
+    sponsorships: getRelatedEntities(event, sponsorships),
   }));
 
-  hydratedEvents.forEach((event) =>
-    createNode({
-      ...event,
-      id: event.eventId,
-      parent: null,
-      children: [],
-      internal: {
-        type: eventsNodeName,
-        content: JSON.stringify(event),
-        contentDigest: createContentDigest(event),
-      },
-    })
-  );
+  createNodesForEntities(createNodeOptions, eventsNodeName, hydratedEvents);
 
   const flattenedSpeakersList = flattenMap(speakers);
-  flattenedSpeakersList.forEach((speaker) =>
+  createNodesForEntities(
+    createNodeOptions,
+    speakersNodeName,
+    flattenedSpeakersList
+  );
+
+  const flattenedSponsorshipsList = flattenMap(sponsorships);
+  createNodesForEntities(
+    createNodeOptions,
+    sponsorshipsNodeName,
+    flattenedSponsorshipsList
+  );
+};
+
+const createNodesForEntities = (createNodeOptions, nodeName, entities) => {
+  const { createNode, createContentDigest } = createNodeOptions;
+  entities.forEach((entity) =>
     createNode({
-      ...speaker,
+      ...entity,
       parent: null,
       children: [],
       internal: {
-        type: speakersNodeName,
-        content: JSON.stringify(speaker),
-        contentDigest: createContentDigest(speaker),
+        type: nodeName,
+        content: JSON.stringify(entity),
+        contentDigest: createContentDigest(entity),
       },
     })
   );
-
-  // const sponsorships = await getMultipleRequests(
-  //   eventIds,
-  //   sponsorshipsUri,
-  //   options
-  // );
-  // sponsorships.forEach((sponsorship) =>
-  //   createNode({
-  //     ...sponsorship,
-  //     parent: null,
-  //     children: [],
-  //     internal: {
-  //       type: sponsorshipsNodeName,
-  //       content: JSON.stringify(sponsorship),
-  //       contentDigest: createContentDigest(sponsorship),
-  //     },
-  //   })
-  // );
-  return;
 };
+
+const getRelatedEntities = (event, entities) =>
+  entities.get(event.readableEventId).map((entity) => entity.id);
 
 exports.onCreateNode = async (
   { node, actions: { createNode }, store, cache, createNodeId, reporter },
@@ -134,6 +128,15 @@ exports.createSchemaCustomization = ({ actions, schema }) => {
             });
           },
         },
+        sponsorships: {
+          type: `[${sponsorshipsNodeName}]`,
+          resolve: (source, args, context) => {
+            return context.nodeModel.getNodesByIds({
+              ids: source.sponsorships,
+              type: `${sponsorshipsNodeName}`,
+            });
+          },
+        },
       },
       interfaces: ["Node"],
     }),
@@ -146,7 +149,7 @@ const getEvents = async (options) => {
     headers
   );
 
-  return eventsResponse.data;
+  return eventsResponse.data.map((event) => ({ ...event, id: event.eventId }));
 };
 
 const getMultipleRequests = async (eventIds, uri, options) => {
