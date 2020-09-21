@@ -22,7 +22,6 @@ exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
     createContentDigest,
   };
 
-  // TODO image handling for event
   // TODO image handling for sponsor
 
   const events = await getEvents(httpOptions);
@@ -129,27 +128,45 @@ const createNodesForEntities = (createNodeOptions, nodeName, entities) => {
 };
 
 exports.onCreateNode = async (
-  { node, actions: { createNode }, store, cache, createNodeId, reporter },
+  { node, actions: { createNode }, store, cache, createNodeId },
   options
 ) => {
-  if (node.internal.type === speakersNodeName) {
-    try {
-      let fileNode = await createRemoteFileNode({
-        url: `${options.endpoint}${versionSpec}${node.imageUrl}`,
-        name: node.name,
-        parentNodeId: node.id,
-        createNode,
-        createNodeId,
-        cache,
-        store,
-      });
+  const createOptions = {
+    node,
+    createNode,
+    store,
+    cache,
+    createNodeId,
+  };
 
-      if (fileNode) {
-        node.image___NODE = fileNode.id;
-      }
-    } catch (e) {
-      console.error("gatsby-source-d365-events ERROR:", e);
+  if (node.internal.type === speakersNodeName)
+    await createImageNode(
+      `${options.endpoint}${versionSpec}${node.imageUrl}`,
+      createOptions
+    );
+  if (node.internal.type === eventsNodeName && !!node.image)
+    await createImageNode(node.image, createOptions);
+};
+
+const createImageNode = async (url, options) => {
+  const { node, createNode, store, cache, createNodeId } = options;
+
+  try {
+    let fileNode = await createRemoteFileNode({
+      url,
+      name: node.name,
+      parentNodeId: node.id,
+      createNode,
+      createNodeId,
+      cache,
+      store,
+    });
+
+    if (fileNode) {
+      node.image___NODE = fileNode.id;
     }
+  } catch (e) {
+    console.error("gatsby-source-d365-events ERROR:", e);
   }
 };
 
