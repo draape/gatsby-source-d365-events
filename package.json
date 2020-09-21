@@ -12,6 +12,7 @@
   "author": "Erik Heumrønningen <erik@draape.net>",
   "license": "0BSD",
   "dependencies": {
-    "axios": "^0.20.0"
+    "axios": "^0.20.0",
+    "gatsby-source-filesystem": "^2.3.30"
   }
 }
