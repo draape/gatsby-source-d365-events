@@ -9,7 +9,7 @@ const tokenParam = "?emApplicationtoken=";
 const eventsUri = `${versionSpec}events/published${tokenParam}`;
 const sponsorshipsUri = `${versionSpec}events/{id}/sponsorships${tokenParam}`;
 const speakersUri = `${versionSpec}events/{id}/speakers${tokenParam}`;
-const sponsorshipLogoUri = `${versionSpec}sponsorships/{id}/logo`;
+const sponsorshipLogoUri = "sponsorships/{id}/logo";
 
 exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
   const headers = getHeaders(options);
@@ -21,8 +21,6 @@ exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
     createNode,
     createContentDigest,
   };
-
-  // TODO image handling for sponsor
 
   const events = await getEvents(httpOptions);
   const eventIds = events.map((event) => event.readableEventId);
@@ -151,6 +149,11 @@ exports.onCreateNode = async (
   if (node.internal.type === speakersNodeName && !!node.imageUrl)
     await createImageNode(
       `${options.endpoint}${versionSpec}${node.imageUrl}`,
+      createOptions
+    );
+  if (node.internal.type === sponsorshipsNodeName && !!node.logo)
+    await createImageNode(
+      `${options.endpoint}${versionSpec}${node.logo}`,
       createOptions
     );
   if (node.internal.type === eventsNodeName && !!node.image)
