@@ -10,7 +10,6 @@ const eventsUri = `${versionSpec}events/published${tokenParam}`;
 const sponsorshipsUri = `${versionSpec}events/{id}/sponsorships${tokenParam}`;
 const speakersUri = `${versionSpec}events/{id}/speakers${tokenParam}`;
 const sponsorshipLogoUri = `${versionSpec}sponsorships/{id}/logo`;
-let isInitialized = false;
 
 exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
   const headers = getHeaders(options);
@@ -55,8 +54,6 @@ exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
     sponsorshipsNodeName,
     flattenedSponsorshipsList
   );
-
-  isInitialized = true;
 };
 
 const getHeaders = (options) => {
@@ -104,7 +101,7 @@ const getEventResources = async (eventIds, uri, httpOptions) => {
       })
     )
     .then(axios.spread((...responses) => new Map(responses)))
-    .catch((errors) => console.error(errors));
+    .catch((e) => console.error(e));
 };
 
 const getSponsorships = async (eventIds, uri, httpOptions) => {
@@ -183,7 +180,6 @@ const createImageNode = async (url, options) => {
 };
 
 exports.createSchemaCustomization = ({ actions, schema }) => {
-  if (!isInitialized) return;
   const { createTypes } = actions;
   createTypes([
     schema.buildObjectType({
