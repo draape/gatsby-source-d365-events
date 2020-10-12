@@ -9,6 +9,7 @@ const tokenParam = "?emApplicationtoken=";
 const eventsUri = `${versionSpec}events/published${tokenParam}`;
 const sponsorshipsUri = `${versionSpec}events/{id}/sponsorships${tokenParam}`;
 const speakersUri = `${versionSpec}events/{id}/speakers${tokenParam}`;
+const customFieldsUri = `${versionSpec}events/{id}/custom-registration-fields${tokenParam}`;
 const sponsorshipLogoUri = "sponsorships/{id}/logo";
 
 exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
@@ -24,6 +25,11 @@ exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
 
   const events = await getEvents(httpOptions);
   const eventIds = events.map((event) => event.readableEventId);
+  const customRegistrationFields = await getEventResources(
+    eventIds,
+    customFieldsUri,
+    httpOptions
+  );
   const speakers = await getEventResources(eventIds, speakersUri, httpOptions);
   const sponsorships = await getSponsorships(
     eventIds,
@@ -33,6 +39,9 @@ exports.sourceNodes = async ({ actions, createContentDigest }, options) => {
 
   const hydratedEvents = events.map((event) => ({
     ...event,
+    customRegistrationFields: customRegistrationFields.get(
+      event.readableEventId
+    ),
     speakers: getRelatedEntities(event, speakers),
     sponsorships: getRelatedEntities(event, sponsorships),
   }));
