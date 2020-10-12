@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-d365-events",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Gatsby source plugin for Microsoft Dynamics 365 events.",
   "main": "index.js",
   "scripts": {},
